@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FPN · Dinâmica de Evolução — Piscina Curta 2015–2025</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --navy:#042C53; --blue:#185FA5; --gold:#BA7517; --steel:#5B7A99;
+  --ink:#0d2135; --mut:#5a6b7d; --line:#dfe6ee; --paper:#ffffff; --wash:#f4f7fb;
+  --mColor:#185FA5; --fColor:#BA7517; --cColor:#3a5a78;
+  --pos:#1f7a43; --neg:#b23a3a;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--wash);color:var(--ink);
+  font-family:"Segoe UI",-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  font-variant-numeric:tabular-nums;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.01em}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+/* ---- header ---- */
+header{background:linear-gradient(115deg,#031d38 0%,var(--navy) 46%,#0a3a68 100%);color:#eaf1f8;
+  position:relative;overflow:hidden;border-bottom:3px solid var(--gold)}
+header::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(180deg,transparent 0 62px,rgba(255,255,255,.045) 62px 64px)}
+.hd{position:relative;z-index:1;padding:30px 0 26px}
+.hd .eyebrow{color:#ffcf7a}
+.hd h1{font-size:clamp(24px,3.4vw,38px);color:#fff;margin:8px 0 6px;letter-spacing:-.02em}
+.hd p{margin:0;color:#b9cee3;max-width:760px;font-size:14.5px}
+.note{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:11.5px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);
+  color:#d7e6f4;padding:5px 11px;border-radius:100px}
+.chip b{color:#ffcf7a;font-weight:700}
+/* ---- hero convergence ---- */
+.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:22px;margin:26px 0 8px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 1px 2px rgba(4,44,83,.04),0 8px 26px rgba(4,44,83,.05)}
+.hero .txt{padding:24px 26px}
+.hero h2{font-size:20px;color:var(--navy)}
+.hero .lead{color:var(--mut);font-size:14px;margin:8px 0 18px}
+.gapgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stat{background:var(--wash);border:1px solid var(--line);border-radius:11px;padding:14px 14px}
+.stat .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);font-weight:700}
+.stat .v{font-size:26px;font-weight:800;color:var(--navy);margin-top:3px;letter-spacing:-.02em}
+.stat .s{font-size:12px;color:var(--mut);margin-top:1px}
+.stat .v.pos{color:var(--pos)} .stat .v.big{color:var(--blue)}
+.hero .viz{padding:16px 18px 10px;position:relative}
+.hero .viz .cap{font-size:11.5px;color:var(--mut);text-align:center;margin-top:4px}
+/* ---- section ---- */
+section{padding:30px 0}
+.sech{display:flex;align-items:baseline;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.sech h2{font-size:21px;color:var(--navy)}
+.sech .sub{color:var(--mut);font-size:13.5px}
+.divlane{height:3px;background:
+  repeating-linear-gradient(90deg,var(--gold) 0 26px,transparent 26px 40px);
+  opacity:.5;border-radius:3px;margin:2px 0 0}
+/* ---- controls ---- */
+.ctl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.seg{display:inline-flex;background:#eaf0f6;border:1px solid var(--line);border-radius:9px;padding:3px}
+.seg button{border:0;background:transparent;padding:7px 14px;border-radius:7px;font-size:13px;
+  font-weight:600;color:var(--mut);cursor:pointer;font-family:inherit;transition:.15s}
+.seg button.on{background:var(--navy);color:#fff;box-shadow:0 1px 3px rgba(4,44,83,.25)}
+.seg.gender button.on[data-g="M"]{background:var(--mColor)}
+.seg.gender button.on[data-g="F"]{background:var(--fColor)}
+.seg.gender button.on[data-g="C"]{background:var(--cColor)}
+select{font-family:inherit;font-size:14px;font-weight:600;color:var(--navy);
+  border:1px solid var(--line);border-radius:9px;padding:8px 12px;background:#fff;cursor:pointer;min-width:190px}
+.lbl{font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin-right:2px}
+/* ---- explorer ---- */
+.expo{display:grid;grid-template-columns:1.5fr 1fr;gap:20px}
+.expo .chartbox{padding:18px 20px 14px}
+.expo .side{padding:20px;display:flex;flex-direction:column;gap:12px}
+.mini{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{background:var(--wash);border:1px solid var(--line);border-radius:10px;padding:12px}
+.kpi .k{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);font-weight:700}
+.kpi .v{font-size:22px;font-weight:800;margin-top:2px;letter-spacing:-.02em;color:var(--navy)}
+.kpi .v.pos{color:var(--pos)} .kpi .v.neg{color:var(--neg)}
+.kpi .s{font-size:11px;color:var(--mut)}
+.verdict{margin-top:auto;font-size:13px;color:var(--ink);background:#fff8ec;border:1px solid #f0dcb4;
+  border-left:3px solid var(--gold);border-radius:8px;padding:12px 13px}
+/* ---- small multiples ---- */
+.grid18{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.sm{background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:11px 12px 8px;cursor:pointer;transition:.15s}
+.sm:hover{border-color:var(--blue);box-shadow:0 6px 18px rgba(24,95,165,.12);transform:translateY(-1px)}
+.sm .t{display:flex;justify-content:space-between;align-items:baseline}
+.sm .t b{font-size:13px;color:var(--navy)}
+.sm .t .d{font-size:12px;font-weight:800}
+.sm .d.pos{color:var(--pos)} .sm .d.neg{color:var(--neg)}
+.sm canvas{margin-top:4px}
+/* ---- ranking tables ---- */
+.tabgrid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);border-bottom:2px solid var(--navy)}
+tbody tr:hover{background:var(--wash)}
+.bar{position:relative}
+.bar span{display:inline-block;height:7px;border-radius:4px;vertical-align:middle;margin-left:6px}
+.d.pos{color:var(--pos);font-weight:700} .d.neg{color:var(--neg);font-weight:700}
+.rank{color:var(--mut);font-weight:700;width:26px}
+.cap{font-size:12px;color:var(--mut)}
+h3.mh{font-size:14px;color:var(--navy);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+h3.mh::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--gold)}
+/* ---- td panels ---- */
+.tdgrid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.panel{padding:18px 20px}
+.matrix{display:grid;gap:7px}
+.mrow{display:grid;grid-template-columns:78px 1fr 60px;align-items:center;gap:10px;font-size:13px}
+.mrow .name{font-weight:700;color:var(--navy)}
+.track{height:22px;background:var(--wash);border:1px solid var(--line);border-radius:6px;position:relative;overflow:hidden}
+.track .fillp{position:absolute;top:0;bottom:0;left:50%;background:var(--pos);opacity:.85}
+.track .filln{position:absolute;top:0;bottom:0;right:50%;background:var(--neg);opacity:.85}
+.track .zero{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#9fb0c0}
+.mrow .val{text-align:right;font-weight:800}
+.mrow .val.pos{color:var(--pos)} .mrow .val.neg{color:var(--neg)}
+footer{background:var(--navy);color:#b9cee3;padding:22px 0;font-size:12.5px;border-top:3px solid var(--gold);margin-top:20px}
+footer b{color:#fff}
+@media(max-width:860px){
+  .hero,.expo,.tabgrid,.tdgrid{grid-template-columns:1fr}
+  .grid18{grid-template-columns:1fr 1fr}
+  .gapgrid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:520px){.grid18,.gapgrid,.mini{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+ <div class="wrap hd">
+  <div class="eyebrow">Federação Portuguesa de Natação · Direção Técnica Nacional</div>
+  <h1>Dinâmica de Evolução — Ranking Absoluto de Piscina Curta</h1>
+  <p>Nível e progressão da natação portuguesa por prova, técnica e distância. Escala única em pontos AQUA (tabela 2025 aplicada a todas as épocas), separando masculino, feminino e conjunto.</p>
+  <div class="note">
+    <span class="chip">Base de evolução: <b>2015–2025</b> (épocas completas)</span>
+    <span class="chip"><b>2026</b> em curso — parcial (jan–jun), fora da tendência</span>
+    <span class="chip"><b>2019 e 2020</b> sem dados</span>
+    <span class="chip">18 provas individuais · M / F / Conjunto</span>
+  </div>
+ </div>
+</header>
+
+<div class="wrap">
+
+ <!-- HERO -->
+ <div class="hero">
+   <div class="card txt">
+     <div class="eyebrow">O sinal do período</div>
+     <h2>O feminino é o motor — e a diferença de género está a fechar</h2>
+     <p class="lead">Índice de nível = média de pontos AQUA do Top-8 nas 18 provas. Entre 2015 e 2025 o pelotão feminino cresceu mais do dobro do masculino, comprimindo a distância entre géneros.</p>
+     <div class="gapgrid">
+       <div class="stat"><div class="k">Feminino Top-8</div><div class="v pos" id="s_f"></div><div class="s" id="s_f2"></div></div>
+       <div class="stat"><div class="k">Masculino Top-8</div><div class="v big" id="s_m"></div><div class="s" id="s_m2"></div></div>
+       <div class="stat"><div class="k">Gap M–F</div><div class="v" id="s_gap"></div><div class="s" id="s_gap2"></div></div>
+     </div>
+   </div>
+   <div class="card viz">
+     <canvas id="heroChart" height="230"></canvas>
+     <div class="cap">Nível médio do Top-8 (pontos AQUA) · <span style="color:var(--mColor);font-weight:700">Masculino</span> · <span style="color:var(--fColor);font-weight:700">Feminino</span> · 2026 a tracejado (parcial)</div>
+   </div>
+ </div>
+
+ <!-- GLOBAL -->
+ <section id="global">
+   <div class="sech"><div class="eyebrow" style="width:100%">01 · Panorama</div>
+     <h2>Evolução global do nível</h2><span class="sub">Média das 18 provas, por posição e por género</span></div>
+   <div class="divlane"></div>
+   <div class="ctl" style="margin-top:16px">
+     <span class="lbl">Posição</span>
+     <div class="seg" id="globTier">
+       <button data-t="win_pts">Vitória</button>
+       <button data-t="pod_pts">Pódio</button>
+       <button data-t="t8_pts" class="on">Top-8</button>
+       <button data-t="t16_pts">Top-16</button>
+     </div>
+   </div>
+   <div class="card" style="padding:18px 20px 12px"><canvas id="globChart" height="118"></canvas></div>
+ </section>
+
+ <!-- EXPLORER -->
+ <section id="explorer">
+   <div class="sech"><div class="eyebrow" style="width:100%">02 · Explorador por prova</div>
+     <h2>Evolução prova a prova</h2><span class="sub">Escolha a prova, a posição e o género</span></div>
+   <div class="divlane"></div>
+   <div class="ctl" style="margin-top:16px">
+     <span class="lbl">Prova</span>
+     <select id="evSel"></select>
+     <span class="lbl" style="margin-left:8px">Posição</span>
+     <div class="seg" id="expTier">
+       <button data-t="win_pts">Vitória</button>
+       <button data-t="pod_pts">Pódio</button>
+       <button data-t="t8_pts" class="on">Top-8</button>
+       <button data-t="t16_pts">Top-16</button>
+     </div>
+   </div>
+   <div class="expo">
+     <div class="card chartbox"><canvas id="evChart" height="200"></canvas>
+       <div class="cap" style="text-align:center;margin-top:6px"><span style="color:var(--mColor);font-weight:700">Masculino</span> · <span style="color:var(--fColor);font-weight:700">Feminino</span> · <span style="color:var(--cColor);font-weight:700">Conjunto</span> · ponto oco = 2026 parcial</div>
+     </div>
+     <div class="card side">
+       <div class="mini">
+         <div class="kpi"><div class="k">Δ Top-8 (M) 2015→25</div><div class="v" id="k_m"></div><div class="s">pontos AQUA</div></div>
+         <div class="kpi"><div class="k">Δ Top-8 (F) 2015→25</div><div class="v" id="k_f"></div><div class="s">pontos AQUA</div></div>
+         <div class="kpi"><div class="k">Melhoria tempo Top-8 (M)</div><div class="v" id="k_tm"></div><div class="s">mais rápido</div></div>
+         <div class="kpi"><div class="k">Melhoria tempo Top-8 (F)</div><div class="v" id="k_tf"></div><div class="s">mais rápido</div></div>
+       </div>
+       <div class="verdict" id="verdict"></div>
+     </div>
+   </div>
+ </section>
+
+ <!-- SMALL MULTIPLES -->
+ <section id="mosaic">
+   <div class="sech"><div class="eyebrow" style="width:100%">03 · Mosaico</div>
+     <h2>As 18 provas de relance</h2><span class="sub">Trajetória do Top-8 (2015–2025) · clique numa prova para a abrir em detalhe</span></div>
+   <div class="divlane"></div>
+   <div class="ctl" style="margin:16px 0 14px">
+     <span class="lbl">Género</span>
+     <div class="seg gender" id="smGender">
+       <button data-g="M" class="on">Masculino</button>
+       <button data-g="F">Feminino</button>
+       <button data-g="C">Conjunto</button>
+     </div>
+   </div>
+   <div class="grid18" id="grid18"></div>
+ </section>
+
+ <!-- RANKINGS -->
+ <section id="rank">
+   <div class="sech"><div class="eyebrow" style="width:100%">04 · Rankings</div>
+     <h2>Quem mais evoluiu · quem tem mais valia</h2><span class="sub">Evolução = Δ pontos Top-8 2015→25 · Valia = nível Top-8 médio 2023–25</span></div>
+   <div class="divlane"></div>
+   <div class="ctl" style="margin:16px 0 14px">
+     <span class="lbl">Género</span>
+     <div class="seg gender" id="rkGender">
+       <button data-g="M" class="on">Masculino</button>
+       <button data-g="F">Feminino</button>
+       <button data-g="C">Conjunto</button>
+     </div>
+   </div>
+   <div class="tabgrid">
+     <div class="card panel"><h3 class="mh">Evolução (Δ pontos Top-8)</h3><table id="tblEvo"></table></div>
+     <div class="card panel"><h3 class="mh">Valia (nível Top-8, 2023–25)</h3><table id="tblVal"></table></div>
+   </div>
+ </section>
+
+ <!-- TECH & DIST -->
+ <section id="td">
+   <div class="sech"><div class="eyebrow" style="width:100%">05 · Técnica e distância</div>
+     <h2>Onde está a progressão e onde está o défice</h2><span class="sub">Δ pontos Top-8 2015→25 (barras) · nível 2025 (valor)</span></div>
+   <div class="divlane"></div>
+   <div class="ctl" style="margin:16px 0 14px">
+     <span class="lbl">Género</span>
+     <div class="seg gender" id="tdGender">
+       <button data-g="M" class="on">Masculino</button>
+       <button data-g="F">Feminino</button>
+     </div>
+   </div>
+   <div class="tdgrid">
+     <div class="card panel"><h3 class="mh">Por técnica</h3><div class="matrix" id="mxTech"></div></div>
+     <div class="card panel"><h3 class="mh">Por distância</h3><div class="matrix" id="mxDist"></div></div>
+   </div>
+ </section>
+</div>
+
+<footer><div class="wrap">
+  <b>FPN · Direção Técnica Nacional</b> — Análise da dinâmica de evolução, ranking absoluto de piscina curta (SCM). Fonte: grelhas anuais POR_AAAA_SCM. Métrica: pontos AQUA (tabela 2025). Evolução calculada sobre épocas completas 2015–2025; 2026 parcial.
+</div></footer>
+
+<script>
+const DATA = {"years": [2015, 2016, 2017, 2018, 2021, 2022, 2023, 2024, 2025, 2026], "complete": [2015, 2016, 2017, 2018, 2021, 2022, 2023, 2024, 2025], "events": {"50m Liv": {"M": {"win_pts": [742.0, 748.0, 742.0, 781.0, 769.0, 824.0, 771.0, 808.0, 832.0, 698.0], "pod_pts": [702.67, 717.33, 700.33, 726.0, 731.33, 778.33, 757.0, 779.0, 775.67, 682.67], "t8_pts": [673.75, 673.25, 662.0, 675.88, 691.62, 724.25, 718.12, 718.88, 726.0, 658.38], "t16_pts": [647.06, 636.31, 633.5, 650.62, 664.62, 684.56, 677.25, 683.94, 691.94, 646.94], "win_time": [21.98, 21.92, 21.98, 21.6, 21.72, 21.22, 21.7, 21.36, 21.15, 22.43], "t8_time": [22.7, 22.72, 22.84, 22.69, 22.51, 22.18, 22.23, 22.24, 22.16, 22.88], "sp1_8": [5.37, 6.84, 5.69, 7.08, 5.62, 6.97, 4.15, 6.93, 6.95, 2.81]}, "F": {"win_pts": [689.0, 721.0, 755.0, 745.0, 724.0, 753.0, 766.0, 717.0, 764.0, 765.0], "pod_pts": [681.33, 697.0, 689.67, 698.33, 698.67, 713.0, 748.33, 704.67, 740.0, 718.67], "t8_pts": [648.75, 656.88, 655.62, 668.62, 670.12, 683.12, 708.75, 686.75, 717.75, 664.12], "t16_pts": [626.44, 632.62, 635.56, 648.69, 641.94, 645.5, 677.75, 663.62, 687.12, 630.19], "win_time": [25.84, 25.45, 25.07, 25.18, 25.42, 25.09, 24.95, 25.5, 24.97, 24.96], "t8_time": [26.37, 26.27, 26.29, 26.11, 26.09, 25.93, 25.61, 25.87, 25.5, 26.19], "sp1_8": [3.64, 5.03, 6.1, 5.0, 4.37, 5.54, 4.65, 2.59, 3.16, 7.77]}, "C": {"win_pts": [742.0, 748.0, 755.0, 781.0, 769.0, 824.0, 771.0, 808.0, 832.0, 765.0], "pod_pts": [706.0, 725.33, 730.33, 745.67, 737.33, 778.33, 764.33, 779.0, 783.67, 723.33], "t8_pts": [685.38, 697.12, 684.12, 699.75, 707.5, 737.75, 743.5, 733.12, 748.62, 689.12], "t16_pts": [662.31, 665.5, 658.81, 672.81, 681.69, 705.12, 713.44, 702.81, 721.88, 665.56], "win_time": [21.98, 21.92, 25.07, 21.6, 21.72, 21.22, 21.7, 21.36, 21.15, 24.96], "t8_time": [23.82, 23.68, 24.26, 24.09, 23.99, 23.27, 23.59, 23.31, 23.55, 24.18], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}, "100m Liv": {"M": {"win_pts": [760.0, 815.0, 765.0, 835.0, 840.0, 888.0, 890.0, 893.0, 891.0, 731.0], "pod_pts": [745.67, 785.0, 758.33, 794.0, 811.33, 839.33, 829.0, 819.0, 815.33, 724.0], "t8_pts": [727.25, 750.12, 732.12, 760.0, 767.5, 788.88, 775.62, 767.38, 773.5, 709.62], "t16_pts": [698.88, 716.12, 706.38, 734.12, 739.31, 759.56, 744.25, 739.19, 745.12, 687.12], "win_time": [49.13, 48.0, 49.01, 47.61, 47.51, 46.65, 46.61, 46.55, 46.59, 49.77], "t8_time": [49.85, 49.36, 49.75, 49.14, 48.99, 48.55, 48.84, 49.01, 48.88, 50.27], "sp1_8": [3.36, 4.5, 3.16, 4.75, 4.44, 5.81, 6.63, 6.96, 7.13, 1.81]}, "F": {"win_pts": [736.0, 716.0, 718.0, 757.0, 740.0, 740.0, 760.0, 768.0, 776.0, 793.0], "pod_pts": [732.33, 706.33, 714.33, 731.67, 734.67, 726.67, 755.0, 758.33, 770.67, 756.67], "t8_pts": [693.25, 688.25, 692.88, 703.25, 713.62, 708.88, 737.62, 737.62, 755.5, 696.5], "t16_pts": [662.06, 662.0, 672.69, 681.88, 685.31, 683.69, 707.38, 712.44, 725.38, 658.06], "win_time": [55.64, 56.16, 56.11, 55.12, 55.54, 55.55, 55.05, 54.86, 54.67, 54.28], "t8_time": [56.79, 56.91, 56.79, 56.51, 56.22, 56.35, 55.61, 55.61, 55.17, 56.74], "sp1_8": [3.79, 3.4, 2.57, 3.88, 2.05, 2.88, 2.27, 2.86, 1.77, 7.15]}, "C": {"win_pts": [760.0, 815.0, 765.0, 835.0, 840.0, 888.0, 890.0, 893.0, 891.0, 793.0], "pod_pts": [745.67, 785.0, 758.33, 794.0, 811.33, 839.33, 829.0, 819.0, 815.33, 764.33], "t8_pts": [736.75, 750.38, 735.5, 763.88, 767.88, 788.88, 783.0, 778.38, 786.25, 732.62], "t16_pts": [713.31, 723.88, 716.19, 741.25, 746.62, 761.75, 758.19, 753.44, 765.31, 707.31], "win_time": [49.13, 48.0, 49.01, 47.61, 47.51, 46.65, 46.61, 46.55, 46.59, 54.28], "t8_time": [51.89, 50.11, 51.18, 49.8, 49.73, 48.55, 51.64, 51.74, 51.55, 51.97], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}, "200m Liv": {"M": {"win_pts": [800.0, 792.0, 804.0, 873.0, 786.0, 825.0, 840.0, 807.0, 795.0, 750.0], "pod_pts": [796.0, 777.33, 789.33, 813.33, 778.0, 793.33, 798.0, 760.67, 769.67, 738.67], "t8_pts": [762.12, 744.75, 752.25, 770.0, 761.88, 758.88, 757.5, 739.5, 747.25, 687.38], "t16_pts": [731.38, 714.62, 723.62, 734.38, 736.31, 724.56, 727.19, 721.44, 726.5, 654.88], "win_time": [106.2, 106.56, 106.03, 103.16, 106.82, 105.11, 104.47, 105.88, 106.44, 108.52], "t8_time": [107.97, 108.81, 108.45, 107.64, 107.95, 108.13, 108.2, 109.04, 108.67, 111.82], "sp1_8": [3.64, 4.25, 3.97, 6.92, 1.81, 4.83, 5.57, 3.67, 3.03, 5.71]}, "F": {"win_pts": [785.0, 778.0, 804.0, 790.0, 791.0, 802.0, 842.0, 822.0, 861.0, 848.0], "pod_pts": [730.0, 746.0, 776.33, 788.0, 775.0, 778.0, 800.67, 799.67, 840.0, 758.33], "t8_pts": [700.38, 712.38, 745.38, 757.62, 756.75, 745.88, 767.75, 772.88, 807.25, 708.88], "t16_pts": [679.31, 691.56, 721.06, 731.94, 725.56, 721.31, 738.62, 742.62, 776.62, 668.62], "win_time": [119.53, 119.89, 118.62, 119.3, 119.25, 118.69, 116.81, 117.75, 115.91, 116.52], "t8_time": [124.23, 123.53, 121.68, 121.02, 121.03, 121.64, 120.5, 120.21, 118.47, 123.85], "sp1_8": [5.27, 4.32, 4.07, 3.16, 3.13, 3.9, 4.83, 3.82, 3.76, 9.0]}, "C": {"win_pts": [800.0, 792.0, 804.0, 873.0, 791.0, 825.0, 842.0, 822.0, 861.0, 848.0], "pod_pts": [796.0, 781.67, 799.33, 817.67, 785.67, 803.67, 824.33, 809.0, 840.0, 780.0], "t8_pts": [770.38, 760.12, 774.12, 794.25, 771.75, 777.38, 790.12, 782.0, 810.25, 735.0], "t16_pts": [739.0, 729.62, 748.81, 764.0, 760.31, 752.38, 763.12, 756.56, 784.56, 698.69], "win_time": [106.2, 106.56, 106.03, 103.16, 119.25, 105.11, 116.81, 117.75, 115.91, 116.52], "t8_time": [109.16, 111.24, 112.17, 112.84, 112.26, 112.01, 114.61, 118.16, 116.74, 115.8], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}, "400m Liv": {"M": {"win_pts": [806.0, 771.0, 863.0, 841.0, 867.0, 811.0, 816.0, 808.0, 782.0, 781.0], "pod_pts": [781.67, 769.33, 823.33, 828.67, 808.0, 788.67, 783.0, 783.67, 777.33, 766.67], "t8_pts": [757.88, 758.25, 790.62, 797.25, 766.75, 756.62, 745.12, 759.88, 766.75, 714.12], "t16_pts": [731.5, 733.38, 760.38, 757.88, 735.19, 723.75, 725.75, 735.81, 744.0, 671.94], "win_time": [228.02, 231.42, 222.91, 224.79, 222.57, 227.57, 227.09, 227.82, 230.3, 230.42], "t8_time": [232.78, 232.74, 229.59, 228.92, 232.0, 232.96, 234.17, 232.58, 231.86, 237.62], "sp1_8": [3.71, 1.81, 4.89, 3.88, 5.97, 4.05, 4.37, 3.48, 1.41, 6.45]}, "F": {"win_pts": [779.0, 826.0, 834.0, 823.0, 790.0, 795.0, 834.0, 821.0, 830.0, 817.0], "pod_pts": [756.33, 750.0, 784.33, 785.33, 768.33, 790.33, 797.67, 791.33, 798.33, 721.0], "t8_pts": [708.25, 712.62, 745.25, 743.62, 737.5, 749.0, 758.5, 754.38, 768.0, 663.88], "t16_pts": [679.69, 681.56, 713.44, 719.5, 706.94, 715.06, 726.56, 727.38, 737.81, 630.81], "win_time": [250.22, 245.39, 244.61, 245.65, 248.98, 248.53, 244.57, 245.86, 244.91, 246.25], "t8_time": [258.45, 257.92, 254.05, 254.24, 254.88, 253.58, 252.56, 252.98, 251.44, 264.31], "sp1_8": [5.36, 6.3, 5.47, 5.24, 4.24, 3.76, 5.39, 4.05, 3.9, 9.49]}, "C": {"win_pts": [806.0, 826.0, 863.0, 841.0, 867.0, 811.0, 834.0, 821.0, 830.0, 817.0], "pod_pts": [787.0, 789.33, 835.33, 829.0, 814.33, 800.0, 811.67, 809.67, 799.67, 790.33], "t8_pts": [770.75, 770.25, 801.75, 810.0, 778.88, 781.5, 782.0, 780.62, 783.62, 736.12], "t16_pts": [742.69, 743.38, 773.5, 773.25, 753.88, 753.19, 752.0, 757.12, 768.38, 691.0], "win_time": [228.02, 245.39, 222.91, 224.79, 222.57, 227.57, 244.57, 245.86, 244.91, 246.25], "t8_time": [236.35, 233.96, 233.35, 232.52, 238.11, 237.7, 242.61, 237.79, 237.47, 240.2], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}, "800m Liv": {"M": {"win_pts": [823.0, 774.0, 843.0, 837.0, 840.0, 801.0, 832.0, 869.0, 801.0, 799.0], "pod_pts": [791.67, 769.33, 800.0, 818.67, 787.33, 765.33, 794.0, 808.67, 785.0, 775.0], "t8_pts": [758.0, 741.5, 768.38, 788.12, 742.12, 744.12, 741.5, 766.88, 752.12, 714.25], "t16_pts": [724.81, 712.44, 737.12, 742.44, 703.56, 695.88, 702.88, 726.12, 717.5, 665.56], "win_time": [469.89, 479.62, 466.18, 467.37, 466.81, 474.11, 468.28, 461.51, 474.12, 474.62], "t8_time": [483.12, 486.68, 481.01, 476.94, 486.81, 486.07, 486.99, 481.41, 484.42, 493.22], "sp1_8": [4.37, 3.41, 4.96, 4.51, 7.34, 3.64, 6.82, 5.76, 4.03, 7.37]}, "F": {"win_pts": [806.0, 803.0, 849.0, 853.0, 815.0, 817.0, 804.0, 831.0, 824.0, 656.0], "pod_pts": [790.67, 776.0, 814.67, 818.0, 791.0, 806.0, 797.33, 804.33, 799.67, 650.0], "t8_pts": [736.38, 739.0, 759.12, 768.0, 757.38, 761.88, 771.0, 769.12, 773.12, 628.12], "t16_pts": [698.0, 702.5, 723.38, 727.31, 713.19, 721.81, 723.38, 729.56, 743.75, 591.12], "win_time": [512.83, 513.54, 504.09, 503.23, 511.0, 510.6, 513.26, 507.63, 509.11, 549.18], "t8_time": [529.04, 528.14, 523.71, 521.56, 523.81, 522.86, 520.66, 521.11, 520.14, 557.42], "sp1_8": [5.58, 5.06, 6.2, 5.71, 4.06, 4.54, 3.17, 4.17, 3.18, 2.77]}, "C": {"win_pts": [823.0, 803.0, 849.0, 853.0, 840.0, 817.0, 832.0, 869.0, 824.0, 799.0], "pod_pts": [805.67, 787.0, 836.0, 838.33, 813.0, 808.0, 810.67, 837.0, 809.67, 775.0], "t8_pts": [781.75, 766.0, 797.38, 810.62, 780.62, 778.12, 791.25, 794.88, 785.5, 715.62], "t16_pts": [750.94, 740.69, 764.19, 778.25, 752.31, 753.0, 760.31, 768.0, 766.81, 676.44], "win_time": [469.89, 513.54, 504.09, 503.23, 466.81, 510.6, 468.28, 461.51, 509.11, 474.62], "t8_time": [493.08, 496.43, 489.92, 482.23, 498.5, 498.83, 501.17, 500.6, 497.32, 498.16], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}, "1500m Liv": {"M": {"win_pts": [831.0, 795.0, 816.0, 838.0, 891.0, 831.0, 844.0, 809.0, 833.0, 660.0], "pod_pts": [813.67, 774.0, 801.67, 828.0, 819.0, 792.33, 807.33, 798.0, 812.67, 629.0], "t8_pts": [766.88, 744.5, 774.0, 804.38, 748.12, 748.5, 769.75, 769.25, 781.0, 596.12], "t16_pts": [727.75, 717.56, 744.12, 759.25, 700.81, 695.06, 725.88, 735.25, 735.5, 564.56], "win_time": [900.65, 914.11, 906.03, 898.18, 879.82, 900.6, 896.04, 908.86, 899.92, 972.39], "t8_time": [925.58, 934.45, 922.37, 910.65, 934.1, 933.29, 924.39, 924.29, 919.71, 1006.53], "sp1_8": [5.28, 3.52, 3.68, 3.23, 9.26, 6.52, 5.13, 3.63, 4.34, 5.32]}, "F": {"win_pts": [816.0, 739.0, 800.0, 851.0, 824.0, 828.0, 803.0, 779.0, 772.0, 610.0], "pod_pts": [784.67, 725.0, 753.67, 801.67, 788.67, 804.0, 798.67, 762.33, 764.0, 584.67], "t8_pts": [709.38, 695.88, 708.62, 749.38, 724.38, 741.75, 744.75, 713.12, 712.75, 537.0], "t16_pts": [667.62, 664.31, 660.88, 695.62, 668.75, 686.44, 691.69, 674.44, 668.81, 499.81], "win_time": [971.67, 1004.32, 978.04, 958.19, 968.62, 967.07, 976.8, 986.89, 989.86, 1070.6], "t8_time": [1019.72, 1024.96, 1019.28, 1000.61, 1012.44, 1004.42, 1002.74, 1017.26, 1017.48, 1118.35], "sp1_8": [8.28, 3.22, 6.94, 7.06, 8.3, 7.51, 6.05, 5.75, 5.67, 7.57]}, "C": {"win_pts": [831.0, 795.0, 816.0, 851.0, 891.0, 831.0, 844.0, 809.0, 833.0, 660.0], "pod_pts": [818.33, 774.0, 808.33, 840.33, 839.33, 821.67, 815.67, 798.0, 812.67, 629.0], "t8_pts": [788.75, 748.62, 782.5, 817.5, 785.88, 785.5, 795.5, 781.38, 789.88, 603.12], "t16_pts": [749.0, 727.25, 753.75, 781.81, 738.94, 745.12, 759.44, 751.69, 755.56, 576.0], "win_time": [900.65, 914.11, 906.03, 958.19, 879.82, 900.6, 896.04, 908.86, 899.92, 972.39], "t8_time": [933.15, 949.7, 927.2, 922.04, 951.82, 951.19, 938.75, 936.01, 932.84, 1029.98], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}, "50m Cos": {"M": {"win_pts": [791.0, 696.0, 795.0, 812.0, 848.0, 801.0, 797.0, 752.0, 805.0, 796.0], "pod_pts": [753.33, 680.67, 751.0, 776.67, 772.33, 770.33, 782.0, 716.67, 759.67, 748.67], "t8_pts": [679.0, 636.62, 665.0, 687.62, 690.62, 703.25, 716.88, 690.88, 713.88, 676.5], "t16_pts": [636.31, 602.62, 622.31, 636.88, 638.75, 657.88, 675.81, 661.81, 681.44, 628.31], "win_time": [23.9, 24.94, 23.86, 23.69, 23.35, 23.8, 23.84, 24.31, 23.76, 23.85], "t8_time": [25.19, 25.71, 25.39, 25.11, 25.07, 24.9, 24.73, 25.01, 24.75, 25.23], "sp1_8": [9.16, 5.41, 10.06, 10.43, 12.12, 7.35, 6.75, 4.57, 6.61, 9.56]}, "F": {"win_pts": [726.0, 718.0, 704.0, 699.0, 786.0, 777.0, 784.0, 791.0, 801.0, 733.0], "pod_pts": [664.67, 682.67, 684.33, 689.33, 742.33, 730.67, 757.67, 760.0, 769.67, 720.0], "t8_pts": [628.62, 639.88, 658.88, 653.38, 674.0, 686.5, 711.0, 711.12, 719.0, 678.75], "t16_pts": [600.38, 609.38, 623.94, 622.06, 626.94, 642.5, 660.75, 659.25, 673.06, 637.88], "win_time": [28.07, 28.17, 28.36, 28.42, 27.33, 27.44, 27.36, 27.28, 27.16, 27.97], "t8_time": [29.47, 29.29, 29.0, 29.08, 28.82, 28.62, 28.28, 28.28, 28.18, 28.72], "sp1_8": [6.59, 5.72, 4.58, 4.61, 9.7, 5.72, 5.81, 6.2, 6.63, 4.25]}, "C": {"win_pts": [791.0, 718.0, 795.0, 812.0, 848.0, 801.0, 797.0, 791.0, 805.0, 796.0], "pod_pts": [753.33, 699.67, 755.67, 776.67, 795.67, 793.0, 792.33, 765.67, 789.33, 752.67], "t8_pts": [697.5, 667.62, 703.75, 720.0, 737.75, 732.5, 755.88, 729.5, 751.25, 717.0], "t16_pts": [654.38, 638.5, 662.75, 670.5, 682.31, 694.88, 713.94, 701.0, 716.44, 680.06], "win_time": [23.9, 28.17, 23.86, 23.69, 23.35, 23.8, 23.84, 27.28, 23.76, 23.85], "t8_time": [25.84, 27.09, 26.65, 26.46, 26.23, 25.85, 26.0, 26.73, 26.48, 26.46], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}, "100m Cos": {"M": {"win_pts": [781.0, 793.0, 817.0, 827.0, 823.0, 860.0, 826.0, 815.0, 834.0, 767.0], "pod_pts": [774.67, 721.0, 724.67, 744.0, 803.0, 811.33, 804.67, 780.67, 796.0, 714.0], "t8_pts": [702.88, 667.25, 674.88, 693.75, 727.62, 729.12, 741.0, 723.5, 753.75, 664.38], "t16_pts": [657.94, 636.25, 643.19, 657.88, 674.0, 676.81, 690.44, 687.12, 711.38, 625.5], "win_time": [52.46, 52.21, 51.68, 51.48, 51.57, 50.82, 51.5, 51.73, 51.34, 52.79], "t8_time": [54.43, 55.37, 55.16, 54.65, 53.81, 53.8, 53.45, 53.88, 53.13, 55.44], "sp1_8": [7.32, 8.54, 9.06, 8.29, 8.14, 10.47, 6.56, 6.38, 5.53, 7.26]}, "F": {"win_pts": [706.0, 687.0, 687.0, 694.0, 791.0, 789.0, 802.0, 800.0, 816.0, 673.0], "pod_pts": [681.33, 679.0, 677.0, 680.67, 732.33, 736.33, 741.67, 753.67, 751.33, 655.33], "t8_pts": [641.62, 641.38, 654.88, 649.5, 674.5, 693.5, 701.62, 703.75, 705.62, 626.12], "t16_pts": [608.62, 608.19, 620.69, 622.94, 631.81, 643.81, 660.69, 654.81, 660.19, 592.75], "win_time": [60.64, 61.21, 61.22, 61.01, 58.39, 58.44, 58.14, 58.19, 57.79, 61.64], "t8_time": [62.65, 62.66, 62.21, 62.39, 61.68, 61.06, 60.83, 60.77, 60.72, 63.17], "sp1_8": [5.8, 5.1, 3.32, 4.39, 8.7, 7.91, 6.35, 6.67, 7.34, 4.72]}, "C": {"win_pts": [781.0, 793.0, 817.0, 827.0, 823.0, 860.0, 826.0, 815.0, 834.0, 767.0], "pod_pts": [774.67, 723.33, 729.33, 750.33, 811.0, 827.67, 815.0, 802.33, 820.33, 717.67], "t8_pts": [716.5, 687.12, 690.12, 702.62, 757.88, 757.88, 761.12, 751.12, 767.12, 676.12], "t16_pts": [675.44, 655.81, 664.88, 674.0, 702.06, 711.5, 721.31, 714.5, 735.0, 648.25], "win_time": [52.46, 52.21, 51.68, 51.48, 51.57, 50.82, 51.5, 51.73, 51.34, 52.79], "t8_time": [56.47, 57.23, 57.17, 56.02, 54.6, 55.42, 54.52, 56.34, 53.58, 57.55], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}, "200m Cos": {"M": {"win_pts": [779.0, 762.0, 750.0, 824.0, 784.0, 805.0, 814.0, 752.0, 783.0, 733.0], "pod_pts": [762.33, 708.67, 715.67, 777.67, 737.33, 776.33, 759.67, 724.67, 769.0, 672.0], "t8_pts": [713.12, 662.5, 681.75, 715.88, 696.75, 709.12, 716.88, 695.12, 735.12, 614.62], "t16_pts": [663.56, 637.81, 658.62, 668.88, 659.94, 664.25, 674.44, 660.5, 691.81, 590.5], "win_time": [114.78, 115.63, 116.25, 112.66, 114.54, 113.54, 113.12, 116.12, 114.56, 117.1], "t8_time": [118.32, 121.25, 120.04, 118.2, 119.19, 118.61, 118.1, 119.25, 117.08, 124.38], "sp1_8": [6.38, 6.64, 4.85, 7.91, 6.05, 8.2, 7.49, 4.32, 5.31, 8.53]}, "F": {"win_pts": [721.0, 728.0, 764.0, 755.0, 792.0, 790.0, 854.0, 806.0, 872.0, 750.0], "pod_pts": [693.67, 700.67, 715.33, 732.33, 716.33, 729.0, 757.33, 753.33, 784.33, 697.33], "t8_pts": [645.88, 651.25, 670.38, 687.62, 675.12, 690.5, 705.12, 698.75, 716.12, 627.62], "t16_pts": [616.62, 622.25, 639.56, 650.31, 637.94, 646.56, 657.31, 659.62, 665.88, 589.06], "win_time": [131.63, 131.16, 129.12, 129.58, 127.58, 127.64, 124.39, 126.8, 123.51, 129.87], "t8_time": [136.64, 136.25, 134.96, 133.82, 134.66, 133.62, 132.77, 133.13, 132.13, 138.1], "sp1_8": [5.87, 6.02, 6.83, 6.47, 7.6, 7.0, 9.29, 7.29, 10.36, 9.7]}, "C": {"win_pts": [779.0, 762.0, 764.0, 824.0, 792.0, 805.0, 854.0, 806.0, 872.0, 750.0], "pod_pts": [762.33, 732.33, 742.33, 781.67, 764.0, 793.33, 802.0, 766.0, 808.67, 720.0], "t8_pts": [727.5, 689.62, 704.25, 741.38, 716.88, 739.12, 747.0, 726.88, 769.62, 665.12], "t16_pts": [682.62, 658.25, 678.5, 703.38, 686.81, 699.81, 711.0, 697.0, 726.25, 621.44], "win_time": [114.78, 115.63, 129.12, 112.66, 127.58, 113.54, 124.39, 126.8, 123.51, 129.87], "t8_time": [120.95, 124.84, 125.74, 123.66, 121.52, 122.07, 121.62, 122.64, 118.63, 130.04], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}, "50m Bru": {"M": {"win_pts": [686.0, 683.0, 685.0, 707.0, 756.0, 729.0, 776.0, 788.0, 774.0, 768.0], "pod_pts": [663.33, 678.33, 675.33, 701.33, 740.33, 710.33, 760.0, 765.0, 758.67, 684.67], "t8_pts": [649.12, 660.12, 659.0, 680.75, 692.62, 690.75, 717.75, 734.12, 726.75, 642.38], "t16_pts": [628.0, 631.38, 640.12, 653.25, 649.56, 653.94, 680.38, 699.06, 694.31, 618.75], "win_time": [28.28, 28.33, 28.3, 28.0, 27.38, 27.72, 27.14, 27.01, 27.17, 27.24], "t8_time": [28.81, 28.65, 28.67, 28.36, 28.21, 28.23, 27.87, 27.66, 27.75, 28.94], "sp1_8": [2.65, 2.47, 1.91, 2.93, 5.51, 4.08, 4.94, 4.33, 3.57, 8.08]}, "F": {"win_pts": [725.0, 690.0, 781.0, 768.0, 789.0, 828.0, 810.0, 822.0, 847.0, 796.0], "pod_pts": [670.33, 684.33, 723.0, 703.67, 689.0, 705.33, 716.0, 722.33, 774.0, 721.67], "t8_pts": [637.12, 641.12, 661.25, 652.5, 643.25, 652.75, 667.75, 678.88, 704.5, 661.0], "t16_pts": [609.38, 609.62, 625.88, 619.56, 615.56, 620.38, 638.75, 650.19, 664.88, 618.06], "win_time": [31.57, 32.09, 30.8, 30.97, 30.7, 30.21, 30.43, 30.28, 29.98, 30.61], "t8_time": [32.98, 32.92, 32.6, 32.74, 32.91, 32.77, 32.5, 32.31, 31.94, 32.62], "sp1_8": [6.11, 5.36, 8.28, 8.04, 9.54, 10.53, 8.54, 8.78, 9.34, 9.9]}, "C": {"win_pts": [725.0, 690.0, 781.0, 768.0, 789.0, 828.0, 810.0, 822.0, 847.0, 796.0], "pod_pts": [687.67, 686.0, 723.0, 726.33, 760.0, 754.0, 781.0, 792.67, 802.33, 751.33], "t8_pts": [662.38, 676.0, 687.5, 700.0, 710.75, 713.5, 735.62, 750.12, 756.12, 691.12], "t16_pts": [644.81, 655.31, 664.06, 671.62, 670.31, 674.19, 696.56, 713.5, 721.0, 652.12], "win_time": [31.57, 32.09, 30.8, 30.97, 30.7, 30.21, 30.43, 30.28, 29.98, 30.61], "t8_time": [29.59, 30.37, 29.71, 29.05, 28.44, 28.39, 28.59, 27.93, 28.32, 30.67], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}, "100m Bru": {"M": {"win_pts": [773.0, 745.0, 747.0, 783.0, 833.0, 810.0, 856.0, 817.0, 815.0, 760.0], "pod_pts": [749.0, 738.67, 742.0, 770.67, 792.67, 763.33, 811.33, 811.67, 804.33, 716.0], "t8_pts": [712.5, 711.38, 720.38, 737.25, 749.88, 727.62, 759.38, 778.0, 768.12, 682.75], "t16_pts": [686.75, 681.31, 694.0, 704.94, 700.25, 696.12, 723.19, 737.44, 724.94, 657.75], "win_time": [60.22, 60.97, 60.92, 59.96, 58.73, 59.28, 58.21, 59.11, 59.18, 60.55], "t8_time": [61.9, 61.93, 61.66, 61.21, 60.88, 61.47, 60.62, 60.11, 60.37, 62.79], "sp1_8": [4.25, 3.44, 2.28, 4.6, 6.93, 5.38, 6.03, 3.47, 3.87, 5.02]}, "F": {"win_pts": [778.0, 770.0, 793.0, 762.0, 812.0, 810.0, 800.0, 816.0, 827.0, 769.0], "pod_pts": [719.67, 730.67, 756.0, 724.0, 721.33, 742.67, 753.33, 768.33, 783.0, 708.0], "t8_pts": [668.0, 678.62, 698.12, 681.12, 683.88, 696.38, 701.12, 727.0, 733.75, 666.25], "t16_pts": [634.88, 639.69, 662.12, 652.5, 651.81, 661.06, 672.44, 686.5, 697.38, 633.44], "win_time": [67.78, 68.02, 67.37, 68.27, 66.82, 66.88, 67.17, 66.73, 66.41, 68.06], "t8_time": [71.39, 71.01, 70.37, 70.91, 70.84, 70.41, 70.25, 69.38, 69.18, 71.45], "sp1_8": [7.52, 6.72, 7.61, 6.12, 7.33, 7.67, 6.83, 6.17, 6.37, 7.39]}, "C": {"win_pts": [778.0, 770.0, 793.0, 783.0, 833.0, 810.0, 856.0, 817.0, 827.0, 769.0], "pod_pts": [764.33, 750.33, 774.33, 770.67, 806.67, 788.33, 818.0, 816.0, 816.33, 745.33], "t8_pts": [726.88, 731.88, 742.75, 751.38, 766.12, 743.88, 772.88, 788.0, 785.0, 702.0], "t16_pts": [699.38, 698.94, 714.38, 716.38, 717.38, 715.88, 740.0, 758.75, 753.31, 678.75], "win_time": [67.78, 68.02, 67.37, 59.96, 58.73, 59.28, 58.21, 59.11, 66.41, 68.06], "t8_time": [63.45, 64.28, 62.97, 62.77, 61.38, 62.98, 62.19, 61.78, 62.81, 64.19], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}, "200m Bru": {"M": {"win_pts": [817.0, 757.0, 746.0, 794.0, 843.0, 829.0, 762.0, 827.0, 770.0, 644.0], "pod_pts": [760.0, 743.0, 736.0, 784.33, 804.67, 764.33, 757.0, 783.67, 735.0, 635.67], "t8_pts": [718.0, 713.0, 712.0, 742.0, 736.5, 712.25, 702.62, 737.38, 711.0, 608.62], "t16_pts": [678.5, 679.94, 682.62, 709.38, 690.38, 675.0, 673.38, 695.06, 685.12, 585.69], "win_time": [128.49, 131.81, 132.46, 129.73, 127.19, 127.87, 131.55, 128.01, 131.05, 139.12], "t8_time": [134.25, 134.52, 134.56, 132.74, 133.21, 134.65, 135.25, 133.07, 134.64, 141.79], "sp1_8": [6.34, 3.41, 2.72, 4.23, 7.64, 8.16, 5.12, 5.81, 4.02, 3.49]}, "F": {"win_pts": [734.0, 740.0, 787.0, 758.0, 780.0, 792.0, 720.0, 711.0, 731.0, 613.0], "pod_pts": [717.33, 710.0, 730.0, 721.0, 747.0, 723.33, 706.67, 698.33, 711.33, 611.0], "t8_pts": [658.62, 650.88, 669.62, 671.62, 692.25, 673.62, 670.75, 667.88, 684.75, 582.25], "t16_pts": [618.31, 616.88, 631.06, 640.81, 645.88, 638.12, 642.19, 629.44, 644.06, 555.12], "win_time": [146.87, 146.47, 143.46, 145.28, 143.91, 143.19, 147.83, 148.45, 147.06, 155.95], "t8_time": [152.45, 153.07, 151.65, 151.41, 149.9, 151.29, 151.39, 151.62, 150.35, 158.7], "sp1_8": [7.14, 7.03, 8.28, 6.77, 6.78, 8.14, 3.79, 4.56, 4.75, 3.57]}, "C": {"win_pts": [817.0, 757.0, 787.0, 794.0, 843.0, 829.0, 762.0, 827.0, 770.0, 644.0], "pod_pts": [765.0, 745.67, 762.67, 784.33, 805.0, 788.0, 757.0, 783.67, 741.33, 635.67], "t8_pts": [729.88, 726.12, 732.75, 752.75, 760.38, 733.75, 719.12, 740.0, 718.62, 618.12], "t16_pts": [697.69, 695.31, 700.44, 720.19, 717.12, 695.81, 687.56, 709.0, 702.0, 598.06], "win_time": [128.49, 131.81, 143.46, 129.73, 127.19, 127.87, 131.55, 128.01, 131.05, 139.12], "t8_time": [138.66, 137.1, 136.66, 135.48, 136.83, 138.46, 139.35, 136.36, 137.59, 148.32], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}, "50m Mar": {"M": {"win_pts": [715.0, 688.0, 710.0, 748.0, 780.0, 769.0, 827.0, 829.0, 853.0, 718.0], "pod_pts": [685.0, 666.67, 687.67, 741.0, 738.33, 759.33, 805.67, 802.0, 803.67, 708.67], "t8_pts": [648.25, 651.62, 660.0, 684.38, 698.62, 726.75, 751.25, 745.62, 743.12, 683.25], "t16_pts": [624.31, 627.19, 633.06, 644.88, 667.69, 683.44, 698.38, 701.06, 708.5, 659.38], "win_time": [23.84, 24.15, 23.89, 23.48, 23.16, 23.27, 22.71, 22.69, 22.48, 23.8], "t8_time": [24.64, 24.59, 24.49, 24.21, 24.04, 23.72, 23.47, 23.53, 23.56, 24.21], "sp1_8": [5.37, 2.73, 3.89, 6.09, 5.79, 3.57, 5.5, 5.99, 7.16, 2.73]}, "F": {"win_pts": [662.0, 678.0, 693.0, 693.0, 747.0, 753.0, 769.0, 702.0, 724.0, 709.0], "pod_pts": [641.67, 661.0, 663.0, 673.0, 722.67, 725.0, 728.67, 695.0, 720.33, 677.0], "t8_pts": [608.0, 620.25, 622.75, 638.75, 649.88, 667.25, 679.62, 664.88, 698.88, 624.12], "t16_pts": [580.06, 584.94, 592.56, 615.25, 614.81, 628.19, 646.31, 640.5, 664.94, 589.0], "win_time": [27.46, 27.24, 27.05, 27.05, 26.38, 26.31, 26.12, 26.93, 26.65, 26.84], "t8_time": [28.26, 28.08, 28.05, 27.8, 27.68, 27.42, 27.25, 27.43, 26.98, 28.04], "sp1_8": [4.44, 5.65, 6.25, 4.55, 7.73, 6.54, 7.01, 3.79, 3.64, 7.19]}, "C": {"win_pts": [715.0, 688.0, 710.0, 748.0, 780.0, 769.0, 827.0, 829.0, 853.0, 718.0], "pod_pts": [685.0, 674.67, 697.67, 741.0, 748.33, 761.33, 805.67, 802.0, 803.67, 713.0], "t8_pts": [656.62, 660.62, 670.5, 696.62, 719.88, 738.62, 760.62, 746.38, 750.62, 692.0], "t16_pts": [633.56, 640.31, 648.0, 663.0, 687.88, 705.19, 722.19, 712.19, 724.38, 669.25], "win_time": [23.84, 24.15, 23.89, 23.48, 23.16, 23.27, 22.71, 22.69, 22.48, 23.8], "t8_time": [25.29, 25.6, 25.11, 25.18, 24.89, 24.31, 24.09, 23.89, 24.93, 24.84], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}, "100m Mar": {"M": {"win_pts": [758.0, 723.0, 779.0, 770.0, 805.0, 809.0, 818.0, 862.0, 842.0, 763.0], "pod_pts": [747.67, 701.0, 744.67, 751.33, 751.67, 780.0, 780.0, 780.33, 790.33, 715.0], "t8_pts": [696.0, 672.12, 695.12, 696.75, 718.12, 727.0, 732.88, 733.62, 741.62, 681.5], "t16_pts": [661.31, 647.12, 656.44, 663.62, 687.94, 686.69, 694.81, 697.44, 707.31, 651.31], "win_time": [52.31, 53.15, 51.84, 52.05, 51.27, 51.2, 51.0, 50.12, 50.51, 52.2], "t8_time": [53.87, 54.47, 53.9, 53.86, 53.29, 53.1, 52.95, 52.94, 52.74, 54.24], "sp1_8": [5.81, 3.89, 6.77, 5.78, 5.66, 5.9, 5.78, 7.64, 6.45, 5.33]}, "F": {"win_pts": [680.0, 674.0, 696.0, 703.0, 717.0, 731.0, 750.0, 734.0, 753.0, 722.0], "pod_pts": [653.33, 636.0, 681.67, 650.0, 706.67, 701.67, 721.0, 696.33, 707.33, 669.0], "t8_pts": [602.62, 601.62, 627.0, 623.38, 660.25, 658.88, 671.0, 654.75, 673.62, 617.0], "t16_pts": [577.75, 580.69, 601.06, 604.56, 623.62, 622.06, 636.81, 621.62, 638.44, 580.0], "win_time": [59.92, 60.11, 59.45, 59.27, 58.88, 58.51, 58.01, 58.42, 57.93, 58.75], "t8_time": [62.45, 62.46, 61.63, 61.72, 60.57, 60.6, 60.24, 60.73, 60.15, 61.98], "sp1_8": [6.33, 5.57, 6.29, 5.13, 5.42, 5.55, 6.27, 6.35, 6.18, 8.51]}, "C": {"win_pts": [758.0, 723.0, 779.0, 770.0, 805.0, 809.0, 818.0, 862.0, 842.0, 763.0], "pod_pts": [747.67, 701.0, 744.67, 751.33, 752.0, 781.33, 780.0, 780.33, 790.33, 726.67], "t8_pts": [702.62, 675.88, 705.5, 703.38, 724.25, 735.25, 744.38, 739.0, 748.5, 691.62], "t16_pts": [667.62, 653.31, 670.44, 669.5, 701.81, 700.44, 711.81, 706.44, 716.06, 662.12], "win_time": [52.31, 53.15, 51.84, 52.05, 51.27, 51.2, 51.0, 50.12, 50.51, 52.2], "t8_time": [55.11, 55.08, 55.02, 54.38, 55.24, 54.28, 54.04, 53.5, 53.26, 55.38], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}, "200m Mar": {"M": {"win_pts": [810.0, 775.0, 780.0, 778.0, 755.0, 765.0, 775.0, 809.0, 801.0, 736.0], "pod_pts": [780.33, 753.33, 763.0, 743.67, 735.0, 721.33, 772.33, 780.67, 783.0, 707.33], "t8_pts": [723.75, 705.75, 730.62, 703.5, 700.5, 684.88, 725.12, 728.75, 728.88, 652.12], "t16_pts": [677.88, 670.19, 687.62, 675.81, 663.38, 655.75, 681.06, 687.5, 678.56, 608.5], "win_time": [114.6, 116.28, 116.03, 116.17, 117.33, 116.79, 116.28, 114.64, 115.03, 118.34], "t8_time": [119.1, 120.07, 118.63, 120.19, 120.34, 121.26, 118.98, 118.81, 118.83, 123.31], "sp1_8": [6.77, 5.43, 3.94, 5.0, 5.0, 5.69, 5.35, 5.93, 6.56, 7.17]}, "F": {"win_pts": [775.0, 745.0, 779.0, 854.0, 818.0, 787.0, 781.0, 777.0, 787.0, 747.0], "pod_pts": [730.33, 723.67, 751.33, 772.67, 748.67, 764.33, 772.67, 771.0, 778.33, 669.33], "t8_pts": [666.5, 675.75, 690.75, 704.88, 705.12, 705.12, 726.38, 737.0, 721.5, 597.5], "t16_pts": [621.12, 636.62, 659.38, 660.75, 672.81, 666.88, 685.31, 680.62, 676.31, 561.5], "win_time": [129.89, 131.6, 129.65, 125.74, 127.58, 129.21, 129.54, 129.78, 129.23, 131.46], "t8_time": [136.81, 136.06, 135.13, 134.28, 134.16, 134.17, 132.79, 132.16, 133.15, 141.97], "sp1_8": [8.36, 6.31, 6.85, 9.98, 7.41, 6.05, 4.74, 5.72, 5.96, 11.37]}, "C": {"win_pts": [810.0, 775.0, 780.0, 854.0, 818.0, 787.0, 781.0, 809.0, 801.0, 747.0], "pod_pts": [784.0, 760.33, 776.33, 795.0, 769.33, 779.0, 776.67, 786.67, 790.0, 725.67], "t8_pts": [750.0, 725.75, 749.62, 743.38, 732.12, 727.62, 760.25, 770.75, 767.88, 674.75], "t16_pts": [699.38, 692.88, 713.31, 706.19, 703.31, 695.44, 726.5, 734.31, 725.19, 631.06], "win_time": [114.6, 116.28, 116.03, 125.74, 127.58, 129.21, 129.54, 114.64, 115.03, 131.46], "t8_time": [121.05, 124.13, 121.01, 124.89, 125.5, 125.74, 123.9, 123.33, 123.5, 125.43], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}, "100m Est": {"M": {"win_pts": [790.0, 801.0, 790.0, 807.0, 800.0, 769.0, 729.0, 718.0, 724.0, 672.0], "pod_pts": [769.0, 756.0, 779.33, 786.33, 778.67, 727.0, 717.33, 703.33, 701.67, 658.0], "t8_pts": [708.0, 687.75, 719.0, 711.75, 708.75, 689.12, 694.38, 684.38, 675.38, 633.0], "t16_pts": [656.38, 643.5, 669.06, 664.56, 668.31, 658.5, 665.56, 657.56, 656.19, 607.81], "win_time": [53.29, 53.06, 53.29, 52.91, 53.08, 53.78, 54.75, 55.01, 54.86, 56.25], "t8_time": [55.34, 55.91, 55.07, 55.27, 55.34, 55.81, 55.65, 55.91, 56.17, 57.4], "sp1_8": [7.3, 9.03, 7.37, 7.75, 7.1, 5.69, 3.03, 2.71, 3.48, 3.79]}, "F": {"win_pts": [685.0, 690.0, 690.0, 708.0, 698.0, 720.0, 715.0, 763.0, 767.0, 759.0], "pod_pts": [672.67, 686.33, 686.33, 699.0, 688.33, 657.67, 688.33, 710.0, 693.0, 664.33], "t8_pts": [628.88, 620.38, 642.12, 657.62, 650.62, 623.88, 654.12, 662.5, 651.38, 603.88], "t16_pts": [595.12, 590.56, 606.62, 623.38, 616.06, 602.0, 627.56, 628.12, 621.56, 571.44], "win_time": [62.49, 62.34, 62.36, 61.83, 62.1, 61.48, 61.61, 60.29, 60.19, 60.39], "t8_time": [64.35, 64.7, 63.93, 63.41, 63.63, 64.52, 63.51, 63.27, 63.63, 65.33], "sp1_8": [5.07, 6.66, 5.24, 5.08, 5.41, 6.47, 5.4, 6.87, 7.78, 11.13]}, "C": {"win_pts": [790.0, 801.0, 790.0, 807.0, 800.0, 769.0, 729.0, 763.0, 767.0, 759.0], "pod_pts": [769.0, 756.0, 779.33, 786.33, 778.67, 734.67, 719.67, 732.0, 731.33, 694.67], "t8_pts": [716.25, 709.0, 731.38, 729.88, 720.38, 697.75, 703.38, 702.25, 689.62, 656.62], "t16_pts": [673.56, 662.12, 688.31, 688.75, 687.56, 668.44, 679.44, 675.12, 668.81, 625.94], "win_time": [53.29, 53.06, 53.29, 52.91, 53.08, 53.78, 54.75, 60.29, 60.19, 60.39], "t8_time": [56.76, 57.77, 57.2, 58.05, 58.32, 56.39, 57.04, 57.06, 57.43, 58.38], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}, "200m Est": {"M": {"win_pts": [883.0, 842.0, 867.0, 863.0, 835.0, 858.0, 803.0, 793.0, 801.0, 648.0], "pod_pts": [834.67, 830.0, 847.33, 854.67, 772.67, 773.33, 773.0, 761.0, 764.67, 646.33], "t8_pts": [751.75, 748.5, 775.38, 783.38, 724.38, 716.5, 729.12, 725.62, 733.75, 629.25], "t16_pts": [699.19, 697.75, 714.88, 723.5, 692.44, 676.69, 696.19, 692.56, 704.56, 611.62], "win_time": [113.45, 115.26, 114.18, 114.34, 115.6, 114.55, 117.1, 117.63, 117.23, 125.82], "t8_time": [119.93, 120.08, 118.64, 118.23, 121.33, 121.83, 121.0, 121.2, 120.75, 127.06], "sp1_8": [8.77, 7.04, 6.73, 7.23, 7.09, 9.33, 5.13, 4.79, 4.57, 2.39]}, "F": {"win_pts": [775.0, 739.0, 780.0, 767.0, 738.0, 750.0, 780.0, 787.0, 785.0, 785.0], "pod_pts": [719.0, 713.0, 757.33, 757.67, 725.67, 735.33, 739.67, 769.0, 767.67, 711.33], "t8_pts": [675.75, 678.62, 719.0, 716.0, 699.75, 702.25, 707.12, 721.88, 713.88, 657.62], "t16_pts": [645.38, 654.88, 682.0, 690.75, 667.56, 674.56, 676.62, 682.69, 678.81, 625.31], "win_time": [132.37, 134.48, 132.08, 132.82, 134.54, 133.83, 132.12, 131.7, 131.81, 131.81], "t8_time": [138.69, 138.42, 135.82, 135.98, 137.01, 136.86, 136.55, 135.64, 136.18, 140.05], "sp1_8": [6.61, 4.54, 4.85, 4.1, 3.4, 4.3, 5.1, 4.98, 5.93, 9.34]}, "C": {"win_pts": [883.0, 842.0, 867.0, 863.0, 835.0, 858.0, 803.0, 793.0, 801.0, 785.0], "pod_pts": [834.67, 830.0, 847.33, 854.67, 774.33, 785.33, 781.67, 788.0, 785.33, 711.33], "t8_pts": [766.12, 757.88, 791.0, 795.25, 740.88, 743.5, 745.88, 755.38, 758.62, 671.25], "t16_pts": [719.69, 715.38, 747.19, 750.44, 712.5, 709.62, 718.94, 723.75, 728.12, 643.44], "win_time": [113.45, 115.26, 114.18, 114.34, 115.6, 114.55, 117.1, 117.63, 117.23, 131.81], "t8_time": [122.64, 124.89, 121.26, 121.08, 127.48, 127.34, 127.15, 124.78, 124.61, 133.49], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}, "400m Est": {"M": {"win_pts": [834.0, 810.0, 836.0, 859.0, 797.0, 871.0, 787.0, 793.0, 800.0, 650.0], "pod_pts": [791.0, 784.33, 807.0, 842.67, 777.33, 785.33, 768.67, 780.33, 786.0, 645.33], "t8_pts": [717.62, 738.38, 757.88, 796.62, 737.12, 723.75, 727.62, 729.12, 753.62, 626.38], "t16_pts": [676.56, 692.44, 712.56, 737.06, 695.75, 678.56, 698.19, 695.44, 716.19, 599.19], "win_time": [249.39, 251.8, 249.19, 246.93, 253.17, 245.87, 254.26, 253.64, 252.87, 271.06], "t8_time": [262.63, 259.93, 257.68, 253.42, 260.03, 261.88, 261.15, 261.05, 258.07, 274.41], "sp1_8": [8.08, 5.83, 6.67, 6.07, 5.0, 9.12, 4.34, 5.31, 3.95, 2.69]}, "F": {"win_pts": [781.0, 755.0, 791.0, 772.0, 752.0, 730.0, 729.0, 725.0, 758.0, 655.0], "pod_pts": [700.0, 716.33, 748.67, 758.0, 740.67, 722.33, 727.33, 718.0, 739.67, 601.33], "t8_pts": [662.12, 676.62, 698.88, 718.25, 702.12, 699.0, 693.5, 693.0, 704.12, 576.0], "t16_pts": [631.5, 649.44, 671.31, 688.31, 666.38, 661.69, 659.75, 648.5, 662.06, 556.31], "win_time": [277.41, 280.57, 276.19, 278.49, 280.82, 283.69, 283.85, 284.33, 280.19, 294.15], "t8_time": [293.32, 291.14, 288.11, 285.36, 287.5, 287.85, 288.67, 288.76, 287.26, 307.15], "sp1_8": [7.27, 5.53, 6.19, 4.3, 3.87, 3.23, 3.3, 4.51, 4.88, 5.55]}, "C": {"win_pts": [834.0, 810.0, 836.0, 859.0, 797.0, 871.0, 787.0, 793.0, 800.0, 655.0], "pod_pts": [810.33, 791.33, 807.0, 842.67, 777.33, 790.67, 768.67, 780.33, 786.0, 651.33], "t8_pts": [732.62, 750.88, 778.5, 805.5, 754.0, 743.62, 739.75, 743.12, 761.75, 633.25], "t16_pts": [691.69, 709.5, 730.88, 759.62, 720.5, 711.38, 713.75, 714.5, 733.44, 607.06], "win_time": [249.39, 251.8, 249.19, 246.93, 253.17, 245.87, 254.26, 253.64, 252.87, 294.15], "t8_time": [263.62, 264.13, 260.87, 258.06, 266.55, 270.89, 268.26, 270.84, 265.69, 276.39], "sp1_8": [null, null, null, null, null, null, null, null, null, null]}}}, "glob": {"win_pts": {"M": [787.72, 765.0, 785.28, 809.83, 814.0, 814.17, 809.06, 808.28, 807.56, 726.33], "F": [742.17, 733.17, 761.39, 764.0, 772.44, 777.33, 783.5, 776.22, 794.17, 733.33], "C": [790.17, 772.67, 797.28, 819.06, 820.06, 821.78, 814.61, 819.39, 827.22, 757.28]}, "pod_pts": {"M": [761.2, 741.89, 758.15, 782.39, 774.39, 772.2, 781.11, 774.39, 777.09, 698.2], "F": [707.74, 706.89, 728.17, 732.46, 735.41, 738.43, 750.44, 746.44, 760.7, 683.06], "C": [766.48, 749.61, 772.63, 790.33, 785.74, 790.43, 791.85, 791.52, 795.89, 722.63]}, "t8_pts": {"M": [714.77, 703.74, 718.35, 734.96, 725.53, 725.63, 734.58, 734.88, 740.65, 659.7], "F": [662.23, 665.63, 684.47, 691.4, 692.81, 696.67, 709.86, 708.62, 720.08, 634.26], "C": [728.81, 719.49, 736.83, 752.12, 746.32, 747.56, 757.29, 755.16, 762.72, 683.37]}, "t16_pts": {"M": [678.23, 671.0, 684.42, 695.52, 687.12, 685.94, 697.5, 700.8, 706.72, 629.74], "F": [630.68, 635.43, 652.4, 660.9, 656.27, 660.09, 673.88, 671.77, 682.61, 599.36], "C": [694.28, 689.22, 705.47, 716.94, 712.41, 714.06, 724.97, 724.98, 734.03, 651.81]}, "sp1_8": {"M": [5.77, 4.9, 5.14, 5.93, 6.47, 6.38, 5.48, 5.09, 4.89, 5.31], "F": [6.06, 5.42, 5.88, 5.53, 6.06, 5.96, 5.49, 5.29, 5.59, 7.58], "C": [null, null, null, null, null, null, null, null, null, null]}}, "evotab": {"M": [{"event": "100m Bru", "stroke": "Bruços", "dist": 100, "t8_2015": 712.5, "t8_2025": 768.12, "delta": 55.62, "slope": 5.99, "win_delta": 42.0, "t16_delta": 38.19, "time_impr": 2.47, "level": 768.5}, {"event": "100m Cos", "stroke": "Costas", "dist": 100, "t8_2015": 702.88, "t8_2025": 753.75, "delta": 50.88, "slope": 7.01, "win_delta": 53.0, "t16_delta": 53.44, "time_impr": 2.39, "level": 739.42}, {"event": "100m Est", "stroke": "Estilos", "dist": 100, "t8_2015": 708.0, "t8_2025": 675.38, "delta": -32.62, "slope": -2.61, "win_delta": -66.0, "t16_delta": -0.19, "time_impr": -1.49, "level": 684.71}, {"event": "100m Liv", "stroke": "Livres", "dist": 100, "t8_2015": 727.25, "t8_2025": 773.5, "delta": 46.25, "slope": 4.55, "win_delta": 131.0, "t16_delta": 46.25, "time_impr": 1.95, "level": 772.17}, {"event": "100m Mar", "stroke": "Mariposa", "dist": 100, "t8_2015": 696.0, "t8_2025": 741.62, "delta": 45.62, "slope": 6.0, "win_delta": 84.0, "t16_delta": 46.0, "time_impr": 2.09, "level": 736.04}, {"event": "1500m Liv", "stroke": "Livres", "dist": 1500, "t8_2015": 766.88, "t8_2025": 781.0, "delta": 14.12, "slope": 0.24, "win_delta": 2.0, "t16_delta": 7.75, "time_impr": 0.63, "level": 773.33}, {"event": "200m Bru", "stroke": "Bruços", "dist": 200, "t8_2015": 718.0, "t8_2025": 711.0, "delta": -7.0, "slope": -0.08, "win_delta": -47.0, "t16_delta": 6.62, "time_impr": -0.28, "level": 717.0}, {"event": "200m Cos", "stroke": "Costas", "dist": 200, "t8_2015": 713.12, "t8_2025": 735.12, "delta": 22.0, "slope": 3.0, "win_delta": 4.0, "t16_delta": 28.25, "time_impr": 1.04, "level": 715.71}, {"event": "200m Est", "stroke": "Estilos", "dist": 200, "t8_2015": 751.75, "t8_2025": 733.75, "delta": -18.0, "slope": -4.34, "win_delta": -82.0, "t16_delta": 5.38, "time_impr": -0.68, "level": 729.5}, {"event": "200m Liv", "stroke": "Livres", "dist": 200, "t8_2015": 762.12, "t8_2025": 747.25, "delta": -14.88, "slope": -0.87, "win_delta": -5.0, "t16_delta": -4.88, "time_impr": -0.64, "level": 748.08}, {"event": "200m Mar", "stroke": "Mariposa", "dist": 200, "t8_2015": 723.75, "t8_2025": 728.88, "delta": 5.12, "slope": 0.46, "win_delta": -9.0, "t16_delta": 0.69, "time_impr": 0.23, "level": 727.58}, {"event": "400m Est", "stroke": "Estilos", "dist": 400, "t8_2015": 717.62, "t8_2025": 753.62, "delta": 36.0, "slope": -0.91, "win_delta": -34.0, "t16_delta": 39.62, "time_impr": 1.74, "level": 736.79}, {"event": "400m Liv", "stroke": "Livres", "dist": 400, "t8_2015": 757.88, "t8_2025": 766.75, "delta": 8.88, "slope": -1.53, "win_delta": -24.0, "t16_delta": 12.5, "time_impr": 0.39, "level": 757.25}, {"event": "50m Bru", "stroke": "Bruços", "dist": 50, "t8_2015": 649.12, "t8_2025": 726.75, "delta": 77.62, "slope": 8.11, "win_delta": 88.0, "t16_delta": 66.31, "time_impr": 3.67, "level": 726.21}, {"event": "50m Cos", "stroke": "Costas", "dist": 50, "t8_2015": 679.0, "t8_2025": 713.88, "delta": 34.88, "slope": 5.34, "win_delta": 14.0, "t16_delta": 45.12, "time_impr": 1.74, "level": 707.21}, {"event": "50m Liv", "stroke": "Livres", "dist": 50, "t8_2015": 673.75, "t8_2025": 726.0, "delta": 52.25, "slope": 6.47, "win_delta": 90.0, "t16_delta": 44.88, "time_impr": 2.42, "level": 721.0}, {"event": "50m Mar", "stroke": "Mariposa", "dist": 50, "t8_2015": 648.25, "t8_2025": 743.12, "delta": 94.88, "slope": 11.08, "win_delta": 138.0, "t16_delta": 84.19, "time_impr": 4.39, "level": 746.67}, {"event": "800m Liv", "stroke": "Livres", "dist": 800, "t8_2015": 758.0, "t8_2025": 752.12, "delta": -5.88, "slope": -1.01, "win_delta": -22.0, "t16_delta": -7.31, "time_impr": -0.27, "level": 753.5}], "F": [{"event": "100m Bru", "stroke": "Bruços", "dist": 100, "t8_2015": 668.0, "t8_2025": 733.75, "delta": 65.75, "slope": 5.04, "win_delta": 49.0, "t16_delta": 62.5, "time_impr": 3.1, "level": 720.62}, {"event": "100m Cos", "stroke": "Costas", "dist": 100, "t8_2015": 641.62, "t8_2025": 705.62, "delta": 64.0, "slope": 7.33, "win_delta": 110.0, "t16_delta": 51.56, "time_impr": 3.08, "level": 703.67}, {"event": "100m Est", "stroke": "Estilos", "dist": 100, "t8_2015": 628.88, "t8_2025": 651.38, "delta": 22.5, "slope": 2.36, "win_delta": 82.0, "t16_delta": 26.44, "time_impr": 1.13, "level": 656.0}, {"event": "100m Liv", "stroke": "Livres", "dist": 100, "t8_2015": 693.25, "t8_2025": 755.5, "delta": 62.25, "slope": 6.0, "win_delta": 40.0, "t16_delta": 63.31, "time_impr": 2.85, "level": 743.58}, {"event": "100m Mar", "stroke": "Mariposa", "dist": 100, "t8_2015": 602.62, "t8_2025": 673.62, "delta": 71.0, "slope": 7.25, "win_delta": 73.0, "t16_delta": 60.69, "time_impr": 3.69, "level": 666.46}, {"event": "1500m Liv", "stroke": "Livres", "dist": 1500, "t8_2015": 709.38, "t8_2025": 712.75, "delta": 3.38, "slope": 1.66, "win_delta": -44.0, "t16_delta": 1.19, "time_impr": 0.22, "level": 723.54}, {"event": "200m Bru", "stroke": "Bruços", "dist": 200, "t8_2015": 658.62, "t8_2025": 684.75, "delta": 26.12, "slope": 2.09, "win_delta": -3.0, "t16_delta": 25.75, "time_impr": 1.38, "level": 674.46}, {"event": "200m Cos", "stroke": "Costas", "dist": 200, "t8_2015": 645.88, "t8_2025": 716.12, "delta": 70.25, "slope": 5.91, "win_delta": 151.0, "t16_delta": 49.25, "time_impr": 3.3, "level": 706.67}, {"event": "200m Est", "stroke": "Estilos", "dist": 200, "t8_2015": 675.75, "t8_2025": 713.88, "delta": 38.12, "slope": 2.72, "win_delta": 10.0, "t16_delta": 33.44, "time_impr": 1.81, "level": 714.29}, {"event": "200m Liv", "stroke": "Livres", "dist": 200, "t8_2015": 700.38, "t8_2025": 807.25, "delta": 106.88, "slope": 7.58, "win_delta": 76.0, "t16_delta": 97.31, "time_impr": 4.64, "level": 782.62}, {"event": "200m Mar", "stroke": "Mariposa", "dist": 200, "t8_2015": 666.5, "t8_2025": 721.5, "delta": 55.0, "slope": 5.78, "win_delta": 12.0, "t16_delta": 55.19, "time_impr": 2.68, "level": 728.29}, {"event": "400m Est", "stroke": "Estilos", "dist": 400, "t8_2015": 662.12, "t8_2025": 704.12, "delta": 42.0, "slope": 2.1, "win_delta": -23.0, "t16_delta": 30.56, "time_impr": 2.07, "level": 696.88}, {"event": "400m Liv", "stroke": "Livres", "dist": 400, "t8_2015": 708.25, "t8_2025": 768.0, "delta": 59.75, "slope": 4.7, "win_delta": 51.0, "t16_delta": 58.12, "time_impr": 2.72, "level": 760.29}, {"event": "50m Bru", "stroke": "Bruços", "dist": 50, "t8_2015": 637.12, "t8_2025": 704.5, "delta": 67.38, "slope": 4.51, "win_delta": 122.0, "t16_delta": 55.5, "time_impr": 3.17, "level": 683.71}, {"event": "50m Cos", "stroke": "Costas", "dist": 50, "t8_2015": 628.62, "t8_2025": 719.0, "delta": 90.38, "slope": 8.8, "win_delta": 75.0, "t16_delta": 72.69, "time_impr": 4.38, "level": 713.71}, {"event": "50m Liv", "stroke": "Livres", "dist": 50, "t8_2015": 648.75, "t8_2025": 717.75, "delta": 69.0, "slope": 5.93, "win_delta": 75.0, "t16_delta": 60.69, "time_impr": 3.33, "level": 704.42}, {"event": "50m Mar", "stroke": "Mariposa", "dist": 50, "t8_2015": 608.0, "t8_2025": 698.88, "delta": 90.88, "slope": 7.9, "win_delta": 62.0, "t16_delta": 84.88, "time_impr": 4.55, "level": 681.12}, {"event": "800m Liv", "stroke": "Livres", "dist": 800, "t8_2015": 736.38, "t8_2025": 773.12, "delta": 36.75, "slope": 2.99, "win_delta": 18.0, "t16_delta": 45.75, "time_impr": 1.68, "level": 771.08}], "C": [{"event": "100m Bru", "stroke": "Bruços", "dist": 100, "t8_2015": 726.88, "t8_2025": 785.0, "delta": 58.12, "slope": 5.51, "win_delta": 49.0, "t16_delta": 53.94, "time_impr": 1.01, "level": 781.96}, {"event": "100m Cos", "stroke": "Costas", "dist": 100, "t8_2015": 716.5, "t8_2025": 767.12, "delta": 50.62, "slope": 7.88, "win_delta": 53.0, "t16_delta": 59.56, "time_impr": 5.12, "level": 759.79}, {"event": "100m Est", "stroke": "Estilos", "dist": 100, "t8_2015": 716.25, "t8_2025": 689.62, "delta": -26.62, "slope": -2.75, "win_delta": -23.0, "t16_delta": -4.75, "time_impr": -1.18, "level": 698.42}, {"event": "100m Liv", "stroke": "Livres", "dist": 100, "t8_2015": 736.75, "t8_2025": 786.25, "delta": 49.5, "slope": 5.09, "win_delta": 131.0, "t16_delta": 52.0, "time_impr": 0.65, "level": 782.54}, {"event": "100m Mar", "stroke": "Mariposa", "dist": 100, "t8_2015": 702.62, "t8_2025": 748.5, "delta": 45.88, "slope": 6.12, "win_delta": 84.0, "t16_delta": 48.44, "time_impr": 3.36, "level": 743.96}, {"event": "1500m Liv", "stroke": "Livres", "dist": 1500, "t8_2015": 788.75, "t8_2025": 789.88, "delta": 1.12, "slope": 1.02, "win_delta": 2.0, "t16_delta": 6.56, "time_impr": 0.03, "level": 788.92}, {"event": "200m Bru", "stroke": "Bruços", "dist": 200, "t8_2015": 729.88, "t8_2025": 718.62, "delta": -11.25, "slope": -0.5, "win_delta": -47.0, "t16_delta": 4.31, "time_impr": 0.77, "level": 725.92}, {"event": "200m Cos", "stroke": "Costas", "dist": 200, "t8_2015": 727.5, "t8_2025": 769.62, "delta": 42.12, "slope": 4.33, "win_delta": 93.0, "t16_delta": 43.62, "time_impr": 1.92, "level": 747.83}, {"event": "200m Est", "stroke": "Estilos", "dist": 200, "t8_2015": 766.12, "t8_2025": 758.62, "delta": -7.5, "slope": -2.82, "win_delta": -82.0, "t16_delta": 8.44, "time_impr": -1.61, "level": 753.29}, {"event": "200m Liv", "stroke": "Livres", "dist": 200, "t8_2015": 770.38, "t8_2025": 810.25, "delta": 39.88, "slope": 2.68, "win_delta": 61.0, "t16_delta": 45.56, "time_impr": -6.95, "level": 794.12}, {"event": "200m Mar", "stroke": "Mariposa", "dist": 200, "t8_2015": 750.0, "t8_2025": 767.88, "delta": 17.88, "slope": 2.34, "win_delta": -9.0, "t16_delta": 25.81, "time_impr": -2.03, "level": 766.29}, {"event": "400m Est", "stroke": "Estilos", "dist": 400, "t8_2015": 732.62, "t8_2025": 761.75, "delta": 29.12, "slope": -1.18, "win_delta": -34.0, "t16_delta": 41.75, "time_impr": -0.79, "level": 748.21}, {"event": "400m Liv", "stroke": "Livres", "dist": 400, "t8_2015": 770.75, "t8_2025": 783.62, "delta": 12.88, "slope": -0.15, "win_delta": 24.0, "t16_delta": 25.69, "time_impr": -0.47, "level": 782.08}, {"event": "50m Bru", "stroke": "Bruços", "dist": 50, "t8_2015": 662.38, "t8_2025": 756.12, "delta": 93.75, "slope": 8.61, "win_delta": 122.0, "t16_delta": 76.19, "time_impr": 4.32, "level": 747.29}, {"event": "50m Cos", "stroke": "Costas", "dist": 50, "t8_2015": 697.5, "t8_2025": 751.25, "delta": 53.75, "slope": 6.55, "win_delta": 14.0, "t16_delta": 62.06, "time_impr": -2.47, "level": 745.54}, {"event": "50m Liv", "stroke": "Livres", "dist": 50, "t8_2015": 685.38, "t8_2025": 748.62, "delta": 63.25, "slope": 6.49, "win_delta": 90.0, "t16_delta": 59.56, "time_impr": 1.15, "level": 741.75}, {"event": "50m Mar", "stroke": "Mariposa", "dist": 50, "t8_2015": 656.62, "t8_2025": 750.62, "delta": 94.0, "slope": 10.8, "win_delta": 138.0, "t16_delta": 90.81, "time_impr": 1.39, "level": 752.54}, {"event": "800m Liv", "stroke": "Livres", "dist": 800, "t8_2015": 781.75, "t8_2025": 785.5, "delta": 3.75, "slope": 0.41, "win_delta": 1.0, "t16_delta": 15.88, "time_impr": -0.86, "level": 790.54}]}, "tech": {"M": [{"k": "Livres", "lvl": 757.77, "delta": 16.79, "time": 0.75}, {"k": "Costas", "lvl": 734.25, "delta": 35.92, "time": 1.72}, {"k": "Bruços", "lvl": 735.29, "delta": 42.08, "time": 1.95}, {"k": "Mariposa", "lvl": 737.88, "delta": 48.54, "time": 2.23}, {"k": "Estilos", "lvl": 720.92, "delta": -4.88, "time": -0.15}], "F": [{"k": "Livres", "lvl": 755.73, "delta": 56.33, "time": 2.57}, {"k": "Costas", "lvl": 713.58, "delta": 74.88, "time": 3.59}, {"k": "Bruços", "lvl": 707.67, "delta": 53.08, "time": 2.55}, {"k": "Mariposa", "lvl": 698.0, "delta": 72.29, "time": 3.64}, {"k": "Estilos", "lvl": 689.79, "delta": 34.21, "time": 1.67}]}, "dist": {"M": [{"k": 50, "lvl": 727.44, "delta": 64.91, "time": 3.05}, {"k": 100, "lvl": 742.48, "delta": 33.15, "time": 1.48}, {"k": 200, "lvl": 731.2, "delta": -2.55, "time": -0.07}, {"k": 400, "lvl": 760.19, "delta": 22.44, "time": 1.06}, {"k": 800, "lvl": 752.12, "delta": -5.88, "time": -0.27}, {"k": 1500, "lvl": 781.0, "delta": 14.12, "time": 0.63}], "F": [{"k": 50, "lvl": 710.03, "delta": 79.41, "time": 3.86}, {"k": 100, "lvl": 703.98, "delta": 57.1, "time": 2.77}, {"k": 200, "lvl": 728.7, "delta": 59.27, "time": 2.76}, {"k": 400, "lvl": 736.06, "delta": 50.88, "time": 2.39}, {"k": 800, "lvl": 773.12, "delta": 36.75, "time": 1.68}, {"k": 1500, "lvl": 712.75, "delta": 3.38, "time": 0.22}]}, "head": {"f_t8_2015": 662.23, "f_t8_2025": 720.08, "m_t8_2015": 714.77, "m_t8_2025": 740.65, "gap_2015": 52.54, "gap_2025": 20.56}, "stroke_order": ["Livres", "Costas", "Bruços", "Mariposa", "Estilos"]};
+const YEARS = DATA.years, COMP = DATA.complete;
+const CFG = {M:{c:'#185FA5',n:'Masculino'},F:{c:'#BA7517',n:'Feminino'},C:{c:'#3a5a78',n:'Conjunto'}};
+const TIERN = {win_pts:'Vitória',pod_pts:'Pódio (Top-3)',t8_pts:'Top-8',t16_pts:'Top-16'};
+Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+Chart.defaults.font.size = 12; Chart.defaults.color = '#5a6b7d';
+const isPartial = y => y===2026;
+
+function ds(vals, color, label){
+  // split solid (<=2025) and dashed (2025->2026)
+  const pts = vals.map((v,i)=> v);
+  return {
+    label, data:pts, borderColor:color, backgroundColor:color, tension:.28,
+    borderWidth:2.4, pointRadius: YEARS.map(y=>isPartial(y)?4.5:3),
+    pointStyle: YEARS.map(y=>isPartial(y)?'circle':'circle'),
+    pointBackgroundColor: YEARS.map(y=>isPartial(y)?'#fff':color),
+    pointBorderColor: color, pointBorderWidth:2,
+    segment:{ borderDash: c => isPartial(YEARS[c.p1DataIndex]) ? [5,4] : undefined,
+              borderColor: c => isPartial(YEARS[c.p1DataIndex]) ? color+'88' : color },
+    spanGaps:true
+  };
+}
+const baseOpts = (yt)=>({
+  responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+  plugins:{legend:{display:false},
+    tooltip:{callbacks:{title:(it)=> (isPartial(YEARS[it[0].dataIndex])? YEARS[it[0].dataIndex]+' · parcial':YEARS[it[0].dataIndex]),
+      label:(c)=> c.dataset.label+': '+(c.parsed.y==null?'—':Math.round(c.parsed.y)+' pts')}}},
+  scales:{ x:{grid:{display:false},ticks:{color:'#8497a8'}},
+           y:{grid:{color:'#eef2f7'},title:{display:!!yt,text:yt,color:'#8497a8',font:{size:11}},
+              ticks:{color:'#8497a8'}} }
+});
+
+// ---- headline ----
+const H=DATA.head;
+document.getElementById('s_f').textContent='+'+Math.round((H.f_t8_2025-H.f_t8_2015)/H.f_t8_2015*1000)/10+'%';
+document.getElementById('s_f2').textContent=Math.round(H.f_t8_2015)+' → '+Math.round(H.f_t8_2025)+' pts';
+document.getElementById('s_m').textContent='+'+Math.round((H.m_t8_2025-H.m_t8_2015)/H.m_t8_2015*1000)/10+'%';
+document.getElementById('s_m2').textContent=Math.round(H.m_t8_2015)+' → '+Math.round(H.m_t8_2025)+' pts';
+document.getElementById('s_gap').textContent=Math.round(H.gap_2015)+' → '+Math.round(H.gap_2025);
+document.getElementById('s_gap2').textContent='pontos · −'+Math.round((H.gap_2015-H.gap_2025)/H.gap_2015*100)+'%';
+
+// ---- hero chart ----
+new Chart(document.getElementById('heroChart'),{type:'line',
+  data:{labels:YEARS,datasets:[ds(DATA.glob.t8_pts.M,CFG.M.c,'Masculino'),ds(DATA.glob.t8_pts.F,CFG.F.c,'Feminino')]},
+  options:baseOpts('')});
+
+// ---- global chart ----
+let globChart;
+function drawGlob(tier){
+  const d=[ds(DATA.glob[tier].M,CFG.M.c,'Masculino'),ds(DATA.glob[tier].F,CFG.F.c,'Feminino'),ds(DATA.glob[tier].C,CFG.C.c,'Conjunto')];
+  if(globChart){globChart.data.datasets=d;globChart.options.scales.y.title.text='pontos AQUA · '+TIERN[tier];globChart.update();}
+  else globChart=new Chart(document.getElementById('globChart'),{type:'line',data:{labels:YEARS,datasets:d},options:baseOpts('pontos AQUA · '+TIERN[tier])});
+}
+drawGlob('t8_pts');
+segBind('globTier',t=>drawGlob(t));
+
+// ---- explorer ----
+const sel=document.getElementById('evSel');
+Object.keys(DATA.events).forEach(ev=>{const o=document.createElement('option');o.value=ev;o.textContent=ev;sel.appendChild(o);});
+let evChart, curEv=Object.keys(DATA.events)[1], curTier='t8_pts';
+function evRow(g,ev){return DATA.evotab[g].find(r=>r.event===ev);}
+function drawEv(){
+  const e=DATA.events[curEv];
+  const d=[ds(e.M[curTier],CFG.M.c,'Masculino'),ds(e.F[curTier],CFG.F.c,'Feminino'),ds(e.C[curTier],CFG.C.c,'Conjunto')];
+  if(evChart){evChart.data.datasets=d;evChart.options.scales.y.title.text='pontos AQUA · '+TIERN[curTier];evChart.update();}
+  else evChart=new Chart(document.getElementById('evChart'),{type:'line',data:{labels:YEARS,datasets:d},options:baseOpts('pontos AQUA · '+TIERN[curTier])});
+  const rm=evRow('M',curEv), rf=evRow('F',curEv);
+  setKPI('k_m',rm.delta,'pts'); setKPI('k_f',rf.delta,'pts');
+  setKPI('k_tm',rm.time_impr,'%',true); setKPI('k_tf',rf.time_impr,'%',true);
+  document.getElementById('verdict').innerHTML=verdict(curEv,rm,rf);
+}
+function setKPI(id,v,u,pct){
+  const el=document.getElementById(id);
+  const s=(v>0?'+':'')+ (u==='%'? (Math.round(v*10)/10):Math.round(v));
+  el.textContent=s+(u==='%'?'%':''); el.className='v '+(v>0?'pos':(v<0?'neg':''));
+}
+function verdict(ev,rm,rf){
+  const lvlAll=DATA.evotab.C.map(r=>r.level).sort((a,b)=>a-b);
+  const lc=evRow('C',ev).level;
+  const rank=lvlAll.indexOf(lc)+1, N=lvlAll.length;
+  let vtag = rank<=5?'entre as de <b>menor valia</b>':(rank>N-5?'entre as de <b>maior valia</b>':'de valia intermédia');
+  const bestG = rf.delta>rm.delta?'feminino':'masculino';
+  const worst = Math.min(rm.delta,rf.delta), decl = worst<0;
+  let ev2 = decl? 'com <b>regressão</b> num dos géneros ('+(rm.delta<rf.delta?'M':'F')+' '+Math.round(worst)+' pts)' :
+            'progressão em ambos os géneros';
+  return '<b>'+ev+'</b> — nível conjunto '+lc+' pts ('+rank+'.º de '+N+', '+vtag+'). '+
+         'Evolução: '+ev2+'; ganho maior no '+bestG+' ('+Math.round(Math.max(rm.delta,rf.delta))+' pts).';
+}
+sel.addEventListener('change',()=>{curEv=sel.value;drawEv();});
+sel.value=curEv;
+segBind('expTier',t=>{curTier=t;drawEv();});
+drawEv();
+
+// ---- small multiples ----
+const grid=document.getElementById('grid18'); let smG='M'; const smCharts={};
+function buildGrid(){
+  grid.innerHTML=''; Object.keys(smCharts).forEach(k=>{smCharts[k].destroy();delete smCharts[k];});
+  Object.keys(DATA.events).forEach(ev=>{
+    const r=evRow(smG,ev); const dl=r?r.delta:0;
+    const div=document.createElement('div'); div.className='sm';
+    div.innerHTML='<div class="t"><b>'+ev+'</b><span class="d '+(dl>=0?'pos':'neg')+'">'+(dl>0?'+':'')+Math.round(dl)+' pts</span></div><canvas height="66"></canvas>';
+    div.onclick=()=>{sel.value=ev;curEv=ev;drawEv();document.getElementById('explorer').scrollIntoView({behavior:'smooth'});};
+    grid.appendChild(div);
+    const cv=div.querySelector('canvas');
+    smCharts[ev]=new Chart(cv,{type:'line',data:{labels:YEARS,datasets:[ds(DATA.events[ev][smG].t8_pts,CFG[smG].c,ev)]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},
+        scales:{x:{display:false},y:{display:false}},elements:{point:{radius:0}},animation:false}});
+  });
+}
+buildGrid(); segBindG('smGender',g=>{smG=g;buildGrid();});
+
+// ---- rankings ----
+let rkG='M';
+function drawRank(){
+  const rows=DATA.evotab[rkG].slice();
+  const evo=rows.slice().sort((a,b)=>b.delta-a.delta);
+  const val=rows.slice().sort((a,b)=>b.level-a.level);
+  const maxAbs=Math.max(...rows.map(r=>Math.abs(r.delta)));
+  const maxLvl=Math.max(...rows.map(r=>r.level)), minLvl=Math.min(...rows.map(r=>r.level));
+  let h1='<thead><tr><th></th><th>Prova</th><th>Δ pts</th><th>tempo</th></tr></thead><tbody>';
+  evo.forEach((r,i)=>{const w=Math.round(Math.abs(r.delta)/maxAbs*90);
+    h1+='<tr><td class="rank">'+(i+1)+'</td><td>'+r.event+'</td>'+
+      '<td class="d '+(r.delta>=0?'pos':'neg')+'">'+(r.delta>0?'+':'')+Math.round(r.delta)+
+      '<span style="width:'+w+'px;background:'+(r.delta>=0?'var(--pos)':'var(--neg)')+'"></span></td>'+
+      '<td class="cap">'+(r.time_impr>0?'+':'')+ (Math.round(r.time_impr*10)/10)+'%</td></tr>';});
+  document.getElementById('tblEvo').innerHTML=h1+'</tbody>';
+  let h2='<thead><tr><th></th><th>Prova</th><th>Nível</th><th></th></tr></thead><tbody>';
+  val.forEach((r,i)=>{const w=Math.round((r.level-minLvl+8)/(maxLvl-minLvl+8)*90);
+    h2+='<tr><td class="rank">'+(i+1)+'</td><td>'+r.event+'</td>'+
+      '<td style="font-weight:800;color:var(--navy)">'+Math.round(r.level)+'</td>'+
+      '<td class="bar"><span style="width:'+w+'px;background:var(--blue);opacity:.85"></span></td></tr>';});
+  document.getElementById('tblVal').innerHTML=h2+'</tbody>';
+}
+drawRank(); segBindG('rkGender',g=>{rkG=g;drawRank();});
+
+// ---- technique & distance ----
+let tdG='M';
+function matrix(el,arr,labelFn){
+  const maxAbs=Math.max(...arr.map(r=>Math.abs(r.delta)));
+  let h='';
+  arr.forEach(r=>{
+    const pos=r.delta>=0, w=Math.abs(r.delta)/maxAbs*50;
+    h+='<div class="mrow"><div class="name">'+labelFn(r)+'</div>'+
+       '<div class="track"><div class="zero"></div>'+
+       (pos?'<div class="fillp" style="width:'+w+'%"></div>':'<div class="filln" style="width:'+w+'%"></div>')+
+       '</div><div class="val '+(pos?'pos':'neg')+'">'+(pos?'+':'')+Math.round(r.delta)+'</div></div>'+
+       '<div class="mrow" style="margin-top:-3px"><div></div><div class="cap" style="font-size:11px">nível 2025: <b style="color:var(--navy)">'+Math.round(r.lvl)+'</b> pts · tempo '+(r.time>0?'+':'')+(Math.round(r.time*10)/10)+'%</div><div></div></div>';
+  });
+  el.innerHTML=h;
+}
+function drawTD(){
+  matrix(document.getElementById('mxTech'),DATA.tech[tdG],r=>r.k);
+  matrix(document.getElementById('mxDist'),DATA.dist[tdG],r=>r.k+' m');
+}
+drawTD(); segBindG('tdGender',g=>{tdG=g;drawTD();});
+
+// ---- seg helpers ----
+function segBind(id,fn){const box=document.getElementById(id);
+  box.querySelectorAll('button').forEach(b=>b.onclick=()=>{box.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');fn(b.dataset.t);});}
+function segBindG(id,fn){const box=document.getElementById(id);
+  box.querySelectorAll('button').forEach(b=>b.onclick=()=>{box.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');fn(b.dataset.g);});}
+</script>
+</body>
+</html>
